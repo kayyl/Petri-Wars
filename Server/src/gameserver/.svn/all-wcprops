@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/svn/!svn/ver/87/trunk/Server/src/gameserver
+END
+GameServer.java
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/59/trunk/Server/src/gameserver/GameServer.java
+END
+ServerManager.java
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/36/trunk/Server/src/gameserver/ServerManager.java
+END
+AbstractGameManager.java
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/69/trunk/Server/src/gameserver/AbstractGameManager.java
+END
+ClientManager.java
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/87/trunk/Server/src/gameserver/ClientManager.java
+END
+IGameServer.java
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/59/trunk/Server/src/gameserver/IGameServer.java
+END
+ServerGram.java
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/47/trunk/Server/src/gameserver/ServerGram.java
+END
+AbstractGame.java
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/59/trunk/Server/src/gameserver/AbstractGame.java
+END
