@@ -1,0 +1,3 @@
+# List of GameManagers for the game server to load.
+# Please put the manager's fully qualified name for best results
+petriwars.PetriWarsGameManager
