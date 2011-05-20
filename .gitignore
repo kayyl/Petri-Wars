@@ -12,3 +12,4 @@ obj/
 Build/
 Debug/
 ipch/
+.svn/
