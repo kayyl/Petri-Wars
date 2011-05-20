@@ -1,0 +1,14 @@
+#Outlines what files git should ignore when adding
+#Files
+.DS_Store
+*.suo
+*.sdf
+*.opensdf
+!.gitignore
+
+#Directories
+bin/
+obj/
+Build/
+Debug/
+ipch/
