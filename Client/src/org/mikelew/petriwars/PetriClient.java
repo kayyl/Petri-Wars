@@ -1,14 +1,27 @@
 package org.mikelew.petriwars;
 
-import java.awt.Dimension;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Toolkit;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.lang.reflect.Field;
+import java.sql.Date;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.StringTokenizer;
+import java.util.logging.Formatter;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
 
-import javax.swing.JFrame;
-
+import org.jagatoo.input.devices.components.Key;
+import org.jagatoo.input.devices.components.KeyID;
+import org.jagatoo.input.devices.components.Keys;
+import org.jagatoo.input.events.KeyPressedEvent;
+import org.jagatoo.input.events.KeyboardEvent;
+import org.jagatoo.logging.Log;
+import org.jagatoo.logging.LogChannel;
+import org.jagatoo.logging.LogLevel;
+import org.jagatoo.logging.LogManager;
 import org.xith3d.base.Xith3DEnvironment;
 import org.xith3d.loop.InputAdapterRenderLoop;
 import org.xith3d.loop.RenderLoop;
@@ -20,9 +33,12 @@ import org.xith3d.render.config.DisplayMode;
 import org.xith3d.render.config.DisplayModeSelector;
 import org.xith3d.render.config.OpenGLLayer;
 import org.xith3d.render.config.DisplayMode.FullscreenMode;
+import org.xith3d.render.util.WindowClosingListener;
+import org.xith3d.ui.hud.HUD;
+import org.xith3d.ui.hud.widgets.assemblies.ConsoleListener;
+import org.xith3d.ui.hud.widgets.assemblies.HUDConsole;
 
-
-public class PetriClient extends InputAdapterRenderLoop{
+public class PetriClient extends InputAdapterRenderLoop {
 	/*
 	 * Xith3D demos and tests to reference:
 	 * 
@@ -61,70 +77,139 @@ public class PetriClient extends InputAdapterRenderLoop{
 	public static final boolean DEFAULT_VSYNC = DisplayMode.VSYNC_ENABLED;
 
 	////////////////////////////////////////////////////////////////////////////
-
+	
+	private static final LogChannel logchannel = new LogChannel("PetriWars");
+	private static final Logger LOG = Logger.getLogger("PetriClient");
+	
+	private final PetriClient myself = this;
+	
 	protected Canvas3D canvas;
+	protected HUD hud;
+	protected HUDConsole cheatconsole;
 
 	public PetriClient() {
 		super(60.0f);
 		
+		setupLogging();
 		setupXithEnvironment();
+		setupCheatConsole();
 	}
-
-	private void setupXithEnvironment() {
-		final int wwidth = 640, wheight = 480; //TODO make these programmable
-
-		// Create a new Window
-		Xith3DEnvironment env = new Xith3DEnvironment(this);
-
-		CanvasConstructionInfo cci = new CanvasConstructionInfo();
-		cci.setFullscreenMode(FullscreenMode.WINDOWED);
-		cci.setTitle("Petri Wars!!");
-		cci.setVSyncEnabled(true);
-
-		final JFrame frame = new JFrame("Petri Wars");
-		frame.setLayout(null);
-		frame.setSize(wwidth, wheight); 
-		frame.addWindowListener(new WindowAdapter(){
-			@Override public void windowClosing(WindowEvent e){
-				//TODO close properly
-				System.exit(0);
+	
+	private void setupLogging(){
+		Logger root = Logger.getLogger("");
+		Handler xithloghandler = new Handler() {
+			@Override public void publish(LogRecord record) {
+				String str = this.getFormatter().format(record);
+				Log.println(logchannel, record.getLevel().intValue(), str);
+			}
+			@Override public void flush() {}
+			@Override public void close() throws SecurityException {}
+		};
+		xithloghandler.setFormatter(new Formatter() {
+			@Override public String format(LogRecord record) {
+				StringBuffer sb = new StringBuffer();
+				sb
+					.append(new SimpleDateFormat("HH:mm:ss").format(new Date(record.getMillis())) )
+					.append(" ").append(record.getLoggerName())
+					.append(" [").append(record.getLevel().getName()).append("] ")
+					.append(record.getMessage()).append('\n');
+				
+				return sb.toString();
 			}
 		});
+		
+		root.addHandler(xithloghandler);
+	}
 
-		canvas = Canvas3DFactory.create(cci, frame.getContentPane());
-		env.addCanvas(canvas);
-
-		frame.setVisible(true);
-
-		Thread.yield(); //yeild to show that we are still alive
-
-		Insets insets = frame.getInsets();
-		Dimension frameSize = new Dimension(wwidth + insets.left + insets.right, wheight + insets.top + insets.bottom);
-		frame.setSize(frameSize);
-
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
-		Point upperLeft = new Point((screenSize.width - frameSize.width)/2, (screenSize.height - frameSize.height)/2);
-		frame.setLocation(upperLeft);
-		frame.setResizable(false);
-
-		java.awt.Dimension size = frame.getSize();
-		frame.setSize(size.width - 2, size.height - 2);
-
-		Thread.yield();
-
-		if (frame.getLocation().x == 0 && frame.getLocation().y == 0)
-			frame.setLocation(upperLeft);
-
+	private void setupXithEnvironment(){
+		Xith3DEnvironment env = new Xith3DEnvironment( this );
+		
+		canvas = Canvas3DFactory.create(
+					640, 480, 
+					32, 
+					FullscreenMode.WINDOWED, 
+					"Petri Wars!");
+		
+		canvas.addWindowClosingListener(new WindowClosingListener() {
+			@Override public void onWindowCloseRequested(Canvas3D canvas) {
+				end();
+			}
+		});
+		
 		this.addRenderLoopListener(new RenderLoopListener(){
 			public void onRenderLoopStarted(RenderLoop rl){}
 			public void onRenderLoopPaused(RenderLoop rl, long gameTime, TimingMode timingMode, int pauseMode){}
 			public void onRenderLoopResumed(RenderLoop rl, long gameTime, TimingMode timingMode, int pauseMode){}
-			public void onRenderLoopStopped(RenderLoop rl, long gameTime, TimingMode timingMode, float averageFPS){
-				frame.setVisible(false);
-				frame.dispose();
-			}
+			public void onRenderLoopStopped(RenderLoop rl, long gameTime, TimingMode timingMode, float averageFPS){}
 		});
+		
+		hud = new HUD(canvas.getWidth(), canvas.getHeight());
+		env.addHUD(hud);
+		env.addCanvas(canvas);
 	}
-
+	
+	@Override public void onKeyPressed(KeyPressedEvent e, Key key) {
+		if (//	((e.getModifierMask() & Keys.MODIFIER_CONTROL) != 0) 
+			//	&& ((e.getModifierMask() & Keys.MODIFIER_ALT) != 0) 
+			//	&& 
+				(key.getKeyID() == KeyID.A) ){
+			cheatconsole.popUp(!cheatconsole.isPoppedUp());
+		}
+	}
+	
+	/////////////////////// Cheat Console ///////////////////////////
+	
+	private void setupCheatConsole(){
+		cheatconsole = new HUDConsole(canvas.getWidth(), 200, logchannel.getID(), true);
+		cheatconsole.addConsoleListener(new CheatConsoleListener());
+		hud.getContentPane().addWidget(cheatconsole);
+		
+		LogManager.getInstance().registerLog(cheatconsole);
+		
+	}
+	
+	private class CheatConsoleListener implements ConsoleListener {
+		@Override public void onCommandEntered(HUDConsole console, String commandLine) {
+			try {
+				StringTokenizer tk = new StringTokenizer(commandLine, " ");
+				String cmd = tk.nextToken();
+				
+				//TODO insert cheat command logic here!
+				if (cmd.matches("(?i)wireframe(mode)?")){
+					boolean b = parseBoolean(tk.nextToken());
+					canvas.setWireframeMode(b);
+					
+				} else if (cmd.matches("(?i)boolprop")){
+					String name = tk.nextToken();
+					boolean b = parseBoolean(tk.nextToken());
+					if (name == null) throw new NullPointerException();
+					Field f = PetriClient.class.getDeclaredField(name);
+					
+					if (f.getGenericType() != Boolean.TYPE) throw new ClassCastException();
+					f.setBoolean(myself, b);
+				
+				} else if (cmd.matches("(?i)intprop")){
+					String name = tk.nextToken();
+					int b = Integer.parseInt(tk.nextToken());
+					if (name == null) throw new NullPointerException();
+					Field f = PetriClient.class.getDeclaredField(name);
+					
+					if (f.getGenericType() != Integer.TYPE) throw new ClassCastException();
+					f.setInt(myself, b);
+					
+				} else {
+					Log.println(logchannel, "Unknown Command");
+				}
+			} catch (Exception ex){
+				Log.println(logchannel, "Bad command");
+			}
+		}
+		
+		public boolean parseBoolean(String s) throws ParseException {
+			if (s.matches("(?i)true|t|yes|on|enabled|1")) return true;
+			if (s.matches("(?i)false|f|no|off|disabled|0")) return false;
+			throw new ParseException("", 0);
+		}
+	}
+	
 }
