@@ -1,6 +1,6 @@
 public class Square
 {
-    private Obstacle wall;
+    private Obstacle obstacle;
     private ArrayList<Unit> units;
     private int x;
     private int y;
@@ -9,20 +9,20 @@ public class Square
     {
         x = x1;
         y = y1;
-        wall = null;
+        obstacle = null;
         units = new ArrayList<Unit>();
     }
     
-    public Obstacle getWall()
+    public Obstacle getObstacle()
     {
-        return wall;
+        return obstacle;
     }
     
-    public boolean addWall(Obstacle w)
+    public boolean addObstacle(Obstacle o)
     {
-        if (wall == null)
+        if (obstacle == null)
         {
-            wall = w;
+            obstacle = o;
             return true;
         }
         return false;
