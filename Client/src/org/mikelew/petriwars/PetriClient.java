@@ -28,6 +28,7 @@ import org.jagatoo.logging.LogManager;
 import org.mikelew.petriwars.annotations.TestingCheat;
 import org.mikelew.petriwars.hud.CheatConsole;
 import org.mikelew.petriwars.hud.ConsoleListener;
+import org.mikelew.petriwars.screens.GameScreen;
 import org.xith3d.base.Xith3DEnvironment;
 import org.xith3d.loop.InputAdapterRenderLoop;
 import org.xith3d.loop.RenderLoop;
@@ -82,6 +83,12 @@ public class PetriClient extends InputAdapterRenderLoop {
 	public static final DisplayMode DEFAULT_DISPLAY_MODE = DisplayModeSelector.getImplementation( DEFAULT_OGL_LAYER ).getBestMode( 800, 600, 32 );
 	public static final FullscreenMode DEFAULT_FULLSCREEN = DisplayMode.WINDOWED;
 	public static final boolean DEFAULT_VSYNC = DisplayMode.VSYNC_ENABLED;
+	
+	private static PetriClient instance;
+	public static PetriClient getInstance(){
+		if (instance == null) instance = new PetriClient();
+		return instance;
+	}
 
 	////////////////////////////////////////////////////////////////////////////
 	
@@ -90,11 +97,14 @@ public class PetriClient extends InputAdapterRenderLoop {
 	
 	private final PetriClient myself = this;
 	
+	protected Xith3DEnvironment env;
 	protected Canvas3D canvas;
 	protected HUD hud;
 	protected CheatConsole cheatconsole;
+	
+	//////////////////////////// Client Start-up ///////////////////////////////
 
-	public PetriClient() {
+	private PetriClient() {
 		super(60.0f);
 		
 		setupLogging();
@@ -132,7 +142,7 @@ public class PetriClient extends InputAdapterRenderLoop {
 
 	private void setupXithEnvironment(){
 		try {
-			Xith3DEnvironment env = new Xith3DEnvironment( this );
+			env = new Xith3DEnvironment( this );
 			
 			// Create Canvas
 			canvas = Canvas3DFactory.create(
@@ -180,6 +190,31 @@ public class PetriClient extends InputAdapterRenderLoop {
 			cheatconsole.popUp(!cheatconsole.isPoppedUp());
 		}
 	}
+	////////////////////// Game Management //////////////////////////
+	
+	protected GameScreen currScreen;
+	
+	public GameScreen getCurrentScreen() {return currScreen;}
+	public void setCurrentScreen(GameScreen newscreen) {
+		env.removeBranchGraph(currScreen);
+		this.currScreen = newscreen;
+		if (newscreen.isPerspective()){
+			env.addPerspectiveBranch(currScreen);
+		} else {
+			env.addParallelBranch(currScreen);
+		}
+	}
+	
+	@Override protected void loopIteration(long gameTime, long frameTime, TimingMode timingMode) {
+		prepareNextFrame(gameTime, frameTime, timingMode);
+
+		if ((getPauseMode() & PAUSE_RENDERING) == 0) {
+			if (currScreen != null) currScreen.preRender();
+			renderNextFrame(gameTime, frameTime, timingMode);
+			if (currScreen != null) currScreen.postRender();
+		}
+	}
+	
 	/////////////////////// Game Globals ////////////////////////////
 	//placing global boolean and integer properties here allows us to test them by using the
 	//"boolprop" and "intprop" cheat commands
