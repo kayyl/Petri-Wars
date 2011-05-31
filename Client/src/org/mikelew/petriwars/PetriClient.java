@@ -16,11 +16,30 @@ import java.util.regex.Matcher;
 
 import org.jagatoo.input.InputSystem;
 import org.jagatoo.input.InputSystemException;
+import org.jagatoo.input.devices.components.ControllerAxis;
+import org.jagatoo.input.devices.components.ControllerButton;
 import org.jagatoo.input.devices.components.Key;
 import org.jagatoo.input.devices.components.KeyID;
 import org.jagatoo.input.devices.components.Keys;
+import org.jagatoo.input.devices.components.MouseButton;
+import org.jagatoo.input.events.ControllerAxisChangedEvent;
+import org.jagatoo.input.events.ControllerButtonEvent;
+import org.jagatoo.input.events.ControllerButtonPressedEvent;
+import org.jagatoo.input.events.ControllerButtonReleasedEvent;
 import org.jagatoo.input.events.KeyPressedEvent;
+import org.jagatoo.input.events.KeyReleasedEvent;
+import org.jagatoo.input.events.KeyStateEvent;
+import org.jagatoo.input.events.KeyTypedEvent;
 import org.jagatoo.input.events.KeyboardEvent;
+import org.jagatoo.input.events.MouseButtonClickedEvent;
+import org.jagatoo.input.events.MouseButtonEvent;
+import org.jagatoo.input.events.MouseButtonPressedEvent;
+import org.jagatoo.input.events.MouseButtonReleasedEvent;
+import org.jagatoo.input.events.MouseMovedEvent;
+import org.jagatoo.input.events.MouseStoppedEvent;
+import org.jagatoo.input.events.MouseWheelEvent;
+import org.jagatoo.input.listeners.InputAdapter;
+import org.jagatoo.input.listeners.InputListener;
 import org.jagatoo.logging.Log;
 import org.jagatoo.logging.LogChannel;
 import org.jagatoo.logging.LogLevel;
@@ -29,7 +48,9 @@ import org.mikelew.petriwars.annotations.TestingCheat;
 import org.mikelew.petriwars.hud.CheatConsole;
 import org.mikelew.petriwars.hud.ConsoleListener;
 import org.mikelew.petriwars.screens.GameScreen;
+import org.mikelew.petriwars.screens.TitleScreen;
 import org.xith3d.base.Xith3DEnvironment;
+import org.xith3d.loaders.texture.TextureLoader;
 import org.xith3d.loop.InputAdapterRenderLoop;
 import org.xith3d.loop.RenderLoop;
 import org.xith3d.loop.RenderLoopListener;
@@ -111,7 +132,8 @@ public class PetriClient extends InputAdapterRenderLoop {
 		setupXithEnvironment();
 		setupCheatConsole();
 		
-		this.run();
+		//Insert first screen to be run here!
+		this.setScreen(new TitleScreen());
 	}
 	
 	private void setupLogging(){
@@ -146,7 +168,7 @@ public class PetriClient extends InputAdapterRenderLoop {
 			
 			// Create Canvas
 			canvas = Canvas3DFactory.create(
-						640, 480, 
+						800, 600, 
 						32, 
 						FullscreenMode.WINDOWED, 
 						"Petri Wars!");
@@ -164,8 +186,10 @@ public class PetriClient extends InputAdapterRenderLoop {
 			env.addHUD(hud);
 			
 			// Create Resource Locators
-			ResourceLocator rl = ResourceLocator.create("resources/");
-			rl.createAndAddTSL("textures");
+			ResourceLocator rl = ResourceLocator.create("org/mikelew/petriwars/resource");
+			rl.createAndAddTSL("texture");
+			rl.createAndAddTSL("bgimg");
+			rl.createAndAddTSL("sprite");
 			ResourceLocator.setSingletonInstance(rl);
 			
 			// Add loop listener
@@ -182,31 +206,38 @@ public class PetriClient extends InputAdapterRenderLoop {
 			LOG.severe("MalformedURLException with Resource Loader setup:"+e.getMessage());
 		}
 	}
-	
-	@Override public void onKeyPressed(KeyPressedEvent e, Key key) {
-		if (	((e.getModifierMask() & Keys.MODIFIER_CONTROL) != 0) 
-				&& ((e.getModifierMask() & Keys.MODIFIER_ALT) != 0) 
-				&& (key.getKeyID() == KeyID.HOME) ){
-			cheatconsole.popUp(!cheatconsole.isPoppedUp());
-		}
-	}
 	////////////////////// Game Management //////////////////////////
 	
 	protected GameScreen currScreen;
+	private GameScreen pendingScreen;
 	
 	public GameScreen getCurrentScreen() {return currScreen;}
-	public void setCurrentScreen(GameScreen newscreen) {
-		env.removeBranchGraph(currScreen);
-		this.currScreen = newscreen;
-		if (newscreen.isPerspective()){
-			env.addPerspectiveBranch(currScreen);
-		} else {
-			env.addParallelBranch(currScreen);
-		}
+	/** Sets the next screen, which will be switched to on the next loop iteration */
+	public void setScreen(GameScreen newscreen) {
+		pendingScreen = newscreen;
 	}
+	public boolean isScreenSwitchPending(){return pendingScreen != null;}
 	
 	@Override protected void loopIteration(long gameTime, long frameTime, TimingMode timingMode) {
+		//switch screens if a screen update is pending
+		if (pendingScreen != null){
+			if (currScreen != null){
+				env.removeRenderPass(currScreen.getRenderPass());
+				env.removeRenderPass(currScreen.getBackgroundRenderPass());
+				env.removeHUD(currScreen.getHud());
+			}
+			
+			this.currScreen = pendingScreen;
+			pendingScreen = null;
+			
+			env.addRenderPass(currScreen.getRenderPass());
+			env.addRenderPass(currScreen.getBackgroundRenderPass());
+			env.addHUD(currScreen.getHud());
+			currScreen.init();
+		}
+		
 		prepareNextFrame(gameTime, frameTime, timingMode);
+		if (currScreen != null) currScreen.runFrame();
 
 		if ((getPauseMode() & PAUSE_RENDERING) == 0) {
 			if (currScreen != null) currScreen.preRender();
@@ -214,6 +245,9 @@ public class PetriClient extends InputAdapterRenderLoop {
 			if (currScreen != null) currScreen.postRender();
 		}
 	}
+	
+	public int getCanvasWidth() {return canvas.getWidth();}
+	public int getCanvasHeight() {return canvas.getHeight();}
 	
 	/////////////////////// Game Globals ////////////////////////////
 	//placing global boolean and integer properties here allows us to test them by using the
@@ -233,6 +267,16 @@ public class PetriClient extends InputAdapterRenderLoop {
 		hud.getContentPane().addWidget(cheatconsole);
 		
 		LogManager.getInstance().registerLog(cheatconsole);
+		
+		InputSystem.getInstance().addInputListener(new InputAdapter() {
+			@Override public void onKeyPressed(KeyPressedEvent e, Key key) {
+				if (	((e.getModifierMask() & Keys.MODIFIER_CONTROL) != 0) && 
+						((e.getModifierMask() & Keys.MODIFIER_ALT) != 0) &&
+						(key.getKeyID() == KeyID.HOME) ){
+					cheatconsole.popUp(!cheatconsole.isPoppedUp());
+				}
+			}
+		});
 		
 	}
 	

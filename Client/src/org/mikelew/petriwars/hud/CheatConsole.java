@@ -35,7 +35,7 @@ import org.xith3d.ui.hud.widgets.TextField;
  * @author Marvin Froehlich (aka Qudus) (edited by Tim Pittman)
  */
 public class CheatConsole extends BackgroundSettableWidget implements PopUpable, LogInterface {
-	private static final float POPUP_SPEED = 1.5f;
+	private static final float POPUP_SPEED = 5f;
 	private static final int COMMANDHISTORY_MAXSIZE = 20;
 	
 	private Boolean initiallyVisible;
@@ -706,14 +706,14 @@ public class CheatConsole extends BackgroundSettableWidget implements PopUpable,
 		public Description() {
 			super(Colorf.DARK_GRAY, null);
 
-			this.borderDesc = new Border.Description(10, 10, 10, 10);
+			this.borderDesc = new Border.Description(4, 4, 4, 4);
 			this.listFontColorNormal = Colorf.WHITE;
 			this.listFontColorWarning = Colorf.ORANGE;
 			this.listFontColorError = Colorf.RED;
 			this.listFontColorCommand = Colorf.GRAY40;
 			this.listDesc = HUD.getTheme().getListDescription();
 			this.inputBoxDesc = HUD.getTheme().getTextFieldDescription();
-			this.listInputBoxGap = 10f;
+			this.listInputBoxGap = -2f;
 			this.inputBoxHeight = 20f;
 
 			listDesc.setBorderDescription(new Border.Description(2, 2, 2, 2, Colorf.LIGHT_GRAY));

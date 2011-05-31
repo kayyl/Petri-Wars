@@ -2,12 +2,16 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/xith3d.jar">
+	<classpathentry kind="lib" path="lib/xith3d.jar" sourcepath="/Users/timpittman/Downloads/xith3d-0.9.7-dev-B1831/libs/xith3d-source.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="http://xith.org/javadoc/xith3d/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/jagatoo.jar"/>
+	<classpathentry kind="lib" path="lib/jagatoo.jar" sourcepath="/Users/timpittman/Downloads/xith3d-0.9.7-dev-B1831/jagatoo-src.zip">
+		<attributes>
+			<attribute name="javadoc_location" value="http://xith.org/javadoc/jagatoo/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="lib" path="lib/openmali.jar"/>
 	<classpathentry kind="lib" path="lib/lwjgl/lwjgl.jar">
 		<attributes>
