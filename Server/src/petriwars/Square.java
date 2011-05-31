@@ -37,4 +37,9 @@ public class Square
     {
         return units.remove(u);
     }
+
+public ArrayList<Unit> getUnits()
+{
+return units;
+}
 }
