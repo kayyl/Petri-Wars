@@ -8,6 +8,7 @@ import java.util.List;
 
 
 public class Map {
+private final byte OBSTACLE = 0x00;
 	private Square[][] map;
 	private String map_name;
 	private int height;
