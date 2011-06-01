@@ -13,6 +13,7 @@ private final byte OBSTACLE = 0x00;
 	private String map_name;
 	private int height;
 private int width;
+private ArrayList<Obstacle> obstacles;
 	public Map(String url){
 		File map_file = new File(url);
 map_name = map_file.getName();
@@ -21,6 +22,7 @@ byte[][] map_raw = FileParser.getByteMap(map_file);
 height = map_raw.length;
 width = map_raw[0].length;
 map = new Square[y][x];
+obstacles = new ArrayList<Obstacle>();
 for (int y = 0; y < height; y++) 
 for (int x = 0; x < width; x++) 
 map[y][x] = new Square(map_raw[y][x]);
@@ -29,6 +31,7 @@ for (int y = 0; y < height; y++)
 for (int x = 0; x < width; x++) 
 if (map_raw[y][x] == OBSTACLE && map[y][x].obstacle == NULL)
 map[y][x].obstacle = new Obstacle(map_raw, map, x, y);
+obstacles.add(map[y][x].obstacle);
 		
 	}
 
