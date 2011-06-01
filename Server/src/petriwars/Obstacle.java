@@ -3,6 +3,7 @@ package petriwars;
 import java.util.ArrayList;
 
 public class Obstacle {
+private final byte OBSTACLE = 0x00;
 private ArrayList<Square> squares;
 	private ArrayList<Square> corners;
 
