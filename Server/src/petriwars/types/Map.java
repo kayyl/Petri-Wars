@@ -41,20 +41,20 @@ return map[y][x].getUnits();
 return map[y][x].getObstacle();
 }
 	
-	public char[][] get_map(){
-		return map;
+	public String getName(){
+		return map_name;
 	}
 	
-	public int get_map_size(){
-		return map_size;
+	public int getHeight(){
+		return height;
+	}
+
+	public int getWidth(){
+		return width;
 	}
 	
-	public char get_map_loc(int row, int col){
-		return map[col][row];
-	}
-	
-	public void set_map_to_normal(int col, int row){
-		map[col][row]='1';
+	public Square getSquare(int x, int y){
+		return map[y][x];
 	}
 	
 }
