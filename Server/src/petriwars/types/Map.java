@@ -8,9 +8,10 @@ import java.util.List;
 
 
 public class Map {
-	private char[][] map;
-	private String map_name="";
-	private int map_size=0;
+	private Square[][] map;
+	private String map_name;
+	private int height;
+private int width;
 	public Map(String url){
 		try {
 			if(get_map_from_file(url)==false){}
@@ -19,6 +20,16 @@ public class Map {
 		}											//something is wrong with the map
 		
 	}
+
+        public ArrayList<Unit> getUnitsAt(int x, int y)
+{
+return map[y][x].getUnits();
+}
+
+        public Obstacle getObstacleAt(int x, int y)
+{
+return map[y][x].getObstacle();
+}
 	
 	public char[][] get_map(){
 		return map;
@@ -37,41 +48,22 @@ public class Map {
 	}
 	
 	private boolean get_map_from_file(String url) throws IOException{
-		List<String> map_raw = readFileAsListOfStrings(url);
-		String line;
-		//CHECK FOR CORRECT FORMAT
-		line=map_raw.remove(0);
-		if(line.compareTo("#Petri Wars Map")>0){return false;}//bad map header
-		line=map_raw.remove(0);
-		if(line.startsWith("#size ")==false){return false;}//bad map header
-		map_size=Integer.parseInt(line.substring(6));
-		line=map_raw.remove(0);
-		if(line.startsWith("#name ")==false){return false;}//bad map header
-		map_name=line.substring(6);
-		line=map_raw.remove(0);
-		if(line.startsWith("#content")==false){return false;}//bad map header
-		
-		map = new char[map_size][map_size];
-		
-		//Now, read in map
-		for(int i=0; i<map_size; i++){
-			for(int j=0; j<map_size; j++){
-				map[i][j]=map_raw.get(i).charAt(j);
-			}
-		}
-		return true;
+File map_file = new File(url);
+map_name = map_file.getName();
+byte[][] map_raw = FileParser.getByteMap(map_file);
+
+height = map_raw.length;
+width = map_raw[0].length;
+map = new Square[y][x];
+for (int y = 0; y < height; y++) 
+for (int x = 0; x < width; x++) 
+map[y][x] = new Square(map_raw[y][x]);
+
+for (int y = 0; y < height; y++) 
+for (int x = 0; x < width; x++) 
+if (map_raw[y][x] == OBSTACLE && map[y][x].obstacle == NULL)
+map[y][x].obstacle = new Obstacle(map_raw, map, x, y);
+
+return true;
 	}
-	
-	private static List<String> readFileAsListOfStrings(String url) throws IOException
-	  {
-	    List<String> records = new ArrayList<String>();
-	    BufferedReader reader = new BufferedReader(new FileReader(url));
-	    String line;
-	    while ((line = reader.readLine()) != null)
-	    {
-	      records.add(line);
-	    }
-	    reader.close();
-	    return records;
-	  }
 }
