@@ -1,4 +1,4 @@
-package petriwars;
+package petriwars.types;
 
 public class Point {
 	float x, y;
