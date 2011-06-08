@@ -1,8 +1,16 @@
 package petriwars.types;
 
 public class Point {
-	float x, y;
-	public Point(float x, float y){
-		this.x=x; this.y=y;
+	double x, y;
+	
+	public Point(double X, double Y){
+		x = X; 
+		y = Y;
+	}
+	
+	public double distance(Point p) {
+		double d = Math.sqrt((x - p.x)(x - p.x) + (y - p.y)(y - p.y));
+		
+		return d;
 	}
 }
