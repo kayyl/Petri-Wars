@@ -10,12 +10,14 @@ public class Square
     private ArrayList<Unit> units;
     private int x;
     private int y;
+    private byte type;
     
-    public Square(int x1, int y1)
+    public Square(byte t, int x1, int y1)
     {
+        type = t;
         x = x1;
         y = y1;
-        wall = null;
+        obstacle = null;
         units = new ArrayList<Unit>();
     }
     
@@ -28,7 +30,7 @@ public class Square
         return obstacle;
     }
     
-    public boolean addObstacle(Obstacle o)
+    public boolean setObstacle(Obstacle o)
     {
         if (obstacle == null)
         {
@@ -53,4 +55,8 @@ public class Square
      return units;
     }
     
+    public boolean nullObstacle()
+    {
+        return obstacle == null;
+    }
 }

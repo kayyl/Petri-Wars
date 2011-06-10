@@ -6,7 +6,7 @@ import petriwars.types.Unit;
 
 public class Square
 {
-    private Obstacle wall;
+    private Obstacle obstacle;
     private ArrayList<Unit> units;
     private int x;
     private int y;
@@ -23,16 +23,16 @@ public class Square
     public int getY() {return y;}
     
     
-    public Obstacle getWall()
+    public Obstacle getObstacle()
     {
-        return wall;
+        return obstacle;
     }
     
-    public boolean addWall(Obstacle w)
+    public boolean addObstacle(Obstacle o)
     {
-        if (wall == null)
+        if (obstacle == null)
         {
-            wall = w;
+            obstacle = o;
             return true;
         }
         return false;
@@ -50,7 +50,7 @@ public class Square
     
     public ArrayList<Unit> getUnits()
     {
-    	return units;
+     return units;
     }
     
 }

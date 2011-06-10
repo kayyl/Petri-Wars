@@ -21,12 +21,17 @@ public class FileParser
         printFile(f);
     }
     
-    public static byte[][] getByteMap(File f) throws Exception
+    public static byte[][] getByteMap(File f)
     {
         byte[] contents = new byte[(int)f.length()];
-        FileInputStream in = new FileInputStream(f);
-        in.read(contents);
-        in.close();
+        FileInputStream in = null;
+        try
+        {
+            in = new FileInputStream(f);
+            in.read(contents);
+            in.close();
+        }
+        catch (Exception e) {}
      
         int width = getIntVal(0x12, contents);
         //width = width + 3 & -4;

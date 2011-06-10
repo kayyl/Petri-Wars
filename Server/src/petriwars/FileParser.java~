@@ -7,6 +7,7 @@ import java.util.Scanner;
 
 public class FileParser
 {
+    //for testing purposes only
     public static void main(String[] args) throws Exception
     {
         Scanner s = new Scanner(System.in);
@@ -46,6 +47,7 @@ public class FileParser
         return mapBytes;        
     }
     
+    //for testing purposes only
     public static void printFile(File f) throws Exception
     {
         byte[] contents = new byte[(int)f.length()];

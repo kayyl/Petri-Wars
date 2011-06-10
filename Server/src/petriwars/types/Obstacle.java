@@ -5,22 +5,22 @@ import java.util.ArrayList;
 public class Obstacle {
     private final byte OBSTACLE = 0x00;
     private ArrayList<Square> squares;
-    private ArrayList<Points> corners;
+    private ArrayList<Point> corners;
     
     public Obstacle(byte[][] map_raw, Square[][] map, int x, int y)
     {
         squares = new ArrayList<Square>();
-        corners = new ArrayList<Points>();
+        corners = new ArrayList<Point>();
         grow(map_raw, map, x, y);
     }
     
     public void grow(byte[][] map_raw, Square[][] map, int x, int y)
     {
         squares.add(map[y][x]);
-        map[y][x].addObstacle(this);
+        map[y][x].setObstacle(this);
         int w = map[0].length;
         int h = map.length;
-        int nw, wn, ne, en, se, es, sw, ws;
+        int nw = 0, wn = 0, ne = 0, en = 0, se = 0, es = 0, sw = 0, ws = 0;
 
         if (isEmpty(x - 1, y - 1, w, h, map_raw, map))
         {
@@ -74,22 +74,27 @@ public class Obstacle {
         if (nw == 4 || wn == 4)
             corners.add(new Point(x - 0.5, y - 0.5));
         if (ne == 4 || en == 4)
-            corners.add(new Point(x + 0.5, y - 0.5));
+            corners.add(new Point(x + 1.5, y - 0.5));
         if (sw == 4 || ws == 4)
-            corners.add(new Point(x - 0.5, y + 0.5));
+            corners.add(new Point(x - 0.5, y + 1.5));
         if (se == 4 || es == 4)
-            corners.add(new Point(x + 0.5, y + 0.5));
+            corners.add(new Point(x + 1.5, y + 1.5));
     }
     
     private boolean isEmpty(int x, int y, int w, int h, byte[][] m, Square[][] m2)
     {
         if (x < 0 || y < 0 || x >= w || y >= h)
             return false;
-        if ([y][x] == OBSTACLE)
+        if (m[y][x] == OBSTACLE && m2[y][x].nullObstacle())
         {
             grow(m, m2, x, y);
             return false;
         }
         return true;
+    }
+    
+    public ArrayList<Point> getCorners()
+    {
+        return corners;
     }
 }
