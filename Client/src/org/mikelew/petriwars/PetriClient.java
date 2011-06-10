@@ -223,6 +223,7 @@ public class PetriClient extends InputAdapterRenderLoop {
 		//switch screens if a screen update is pending
 		if (pendingScreen != null){
 			if (currScreen != null){
+				currScreen.deinit();
 				env.removeRenderPass(currScreen.getRenderPass());
 				env.removeRenderPass(currScreen.getBackgroundRenderPass());
 				env.removeHUD(currScreen.getHud());

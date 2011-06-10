@@ -5,6 +5,11 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.jagatoo.input.InputSystem;
+import org.jagatoo.input.devices.components.Key;
+import org.jagatoo.input.devices.components.KeyID;
+import org.jagatoo.input.events.KeyReleasedEvent;
+import org.jagatoo.input.events.KeyTypedEvent;
 import org.jagatoo.util.errorhandling.IncorrectFormatException;
 import org.jagatoo.util.errorhandling.ParsingException;
 import org.mikelew.petriwars.PetriClient;
@@ -36,6 +41,14 @@ public class TitleScreen extends GameScreen {
 	private int wavecount = 0;
 	private int alphaTimer = -1, alphaTimerTotal = -1;
 	private float destAlpha = 0.0f, startAlpha = 0.0f;
+	
+	private StringBuffer connectScreenText = new StringBuffer();
+	
+	private static enum ScreenInputDirection {
+		None, //input goes nowhere
+		ConnectScreen //input goes to connection screen
+	}
+	private ScreenInputDirection inputDirection = ScreenInputDirection.ConnectScreen;
 	
 	public TitleScreen() {
 		super(false);
@@ -89,13 +102,16 @@ public class TitleScreen extends GameScreen {
 				}
 				{
 					screentext = new Text2D(
-							"Connect to Server:\n \n192.168.1.1", 
+							"Connect to Server:\n \n", 
 							Colorf.BLACK, 
 							new Font("Courier New", Font.BOLD, 32), 
-							TextAlignment.CENTER_CENTER);
+							TextAlignment.TOP_CENTER);
 					//screentext.getTransform().setScale(0.01f);
-					screentext.getTransform().setTranslation(-1.0f, 96, 0.5f);
-					screentg.addChild(screentext);
+					//screentext.getTransform().setTranslation(-1.0f, 96, 0.5f);
+					TransformGroup texttg = new TransformGroup();
+					texttg.getTransform().setTranslation(-1.0f, 96, 0.5f);
+					texttg.addChild(screentext);
+					screentg.addChild(texttg);
 					
 					
 				}
@@ -127,6 +143,8 @@ public class TitleScreen extends GameScreen {
 		this.getRenderPass().getConfig().setScreenScale(PetriClient.getInstance().getCanvasWidth()/2);
 		wavecount = -150;
 	}
+	
+	@Override protected void deinitScreen() {}
 
 	@Override public void runFrame() {
 		/* 
@@ -176,6 +194,28 @@ public class TitleScreen extends GameScreen {
 		this.startAlpha = logo.getAlpha();
 		this.destAlpha = destAlpha;
 		this.alphaTimer = this.alphaTimerTotal = time;
+	}
+	
+	
+	@Override public void onKeyTyped(KeyTypedEvent e, char keyChar) {
+		if (inputDirection == ScreenInputDirection.ConnectScreen){
+			switch (keyChar){
+			case '\n':
+				//TODO connect to server
+				break;
+			case '\b':
+				if (connectScreenText.length() > 0)
+					connectScreenText.setLength(connectScreenText.length()-1);
+				break;
+			default:
+				connectScreenText.append(keyChar);
+			}
+			screentext.setText("Connect to Server:\n \n"+connectScreenText.toString());
+		}
+	}
+	
+	@Override public void onKeyReleased(KeyReleasedEvent e, Key key) {
+		
 	}
 
 }
