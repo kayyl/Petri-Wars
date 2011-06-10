@@ -174,6 +174,7 @@ public class PetriClient extends InputAdapterRenderLoop {
 						"Petri Wars!");
 			InputSystem.getInstance().registerNewKeyboardAndMouse(canvas.getPeer());
 			env.addCanvas(canvas);
+			canvas.setBackgroundColor(0, 0, 0);
 			
 			canvas.addWindowClosingListener(new WindowClosingListener() {
 				@Override public void onWindowCloseRequested(Canvas3D canvas) {
