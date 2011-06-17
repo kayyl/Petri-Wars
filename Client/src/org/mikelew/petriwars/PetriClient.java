@@ -174,6 +174,7 @@ public class PetriClient extends InputAdapterRenderLoop {
 						"Petri Wars!");
 			InputSystem.getInstance().registerNewKeyboardAndMouse(canvas.getPeer());
 			env.addCanvas(canvas);
+			canvas.setBackgroundColor(0, 0, 0);
 			
 			canvas.addWindowClosingListener(new WindowClosingListener() {
 				@Override public void onWindowCloseRequested(Canvas3D canvas) {
@@ -222,6 +223,7 @@ public class PetriClient extends InputAdapterRenderLoop {
 		//switch screens if a screen update is pending
 		if (pendingScreen != null){
 			if (currScreen != null){
+				currScreen.deinit();
 				env.removeRenderPass(currScreen.getRenderPass());
 				env.removeRenderPass(currScreen.getBackgroundRenderPass());
 				env.removeHUD(currScreen.getHud());

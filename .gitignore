@@ -5,6 +5,7 @@
 *.sdf
 *.opensdf
 *.class
+*~
 !.gitignore
 
 #Directories

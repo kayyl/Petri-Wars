@@ -1,7 +1,7 @@
 package petriwars;
 
 import java.util.ArrayList;
-import petriwars.Point;
+import petriwars.types.Point;
 
 public class WaypointManager {
 	public ArrayList<Path> path_list;
@@ -65,11 +65,11 @@ public class WaypointManager {
 			ArrayList<Point> intersects = new ArrayList<Point>();
 			WP start = new WP(s, e, null);
 			WP end = new WP(e, e, null);
-			float slope;//slope of the line
+			double slope;//slope of the line
 			int left_right;//if ray is moving left or right (-1, or 1)
 			Point end_square;//square map coor of path destination
-			float xpos;//x pos on map
-			float ypos;//y pos on map
+			double xpos;//x pos on map
+			double ypos;//y pos on map
 			//get important variables
 			slope = (end.loc.y - start.loc.y) / (end.loc.x - start.loc.x);
 			left_right = (int) Math.signum(end.loc.x - start.loc.x);
