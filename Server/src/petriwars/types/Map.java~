@@ -24,17 +24,23 @@ public class Map {
         
         height = map_raw.length;
         width = map_raw[0].length;
-        map = new Square[y][x];
+        map = new Square[height][width];
         obstacles = new ArrayList<Obstacle>();
         for (int y = 0; y < height; y++)
             for (int x = 0; x < width; x++)
-            map[y][x] = new Square(map_raw[y][x]);
+            map[y][x] = new Square(map_raw[y][x], x, y);
         
         for (int y = 0; y < height; y++)
+        {
             for (int x = 0; x < width; x++)
-            if (map_raw[y][x] == OBSTACLE && map[y][x].obstacle == NULL)
-            map[y][x].obstacle = new Obstacle(map_raw, map, x, y);
-        obstacles.add(map[y][x].obstacle);
+            {
+                if (map_raw[y][x] == OBSTACLE && map[y][x].nullObstacle())
+                {
+                    map[y][x].setObstacle(new Obstacle(map_raw, map, x, y));
+                    obstacles.add(map[y][x].getObstacle());
+                }
+            }
+        }
         
     }
     
@@ -61,5 +67,4 @@ public class Map {
     public Square getSquare(int x, int y) {
         return map[y][x];
     }
-    
 }

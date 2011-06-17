@@ -25,7 +25,9 @@ public class Obstacle {
         if (isEmpty(x - 1, y - 1, w, h, map_raw, map))
         {
             nw++;
+            ne++;
             wn++;
+            ws++;
         }
         if (isEmpty(x, y - 1, w, h, map_raw, map))
         {
@@ -37,14 +39,16 @@ public class Obstacle {
         if (isEmpty(x + 1, y - 1, w, h, map_raw, map))
         {
             ne++;
+            nw++;
             en++;
+            es++;
         }
         if (isEmpty(x - 1, y, w, h, map_raw, map))
         {
             sw++;
             ws++;
-            ne++;
-            en++;
+            nw++;
+            wn++;
         }
         if (isEmpty(x + 1, y, w, h, map_raw, map))
         {
@@ -56,7 +60,9 @@ public class Obstacle {
         if (isEmpty(x - 1, y + 1, w, h, map_raw, map))
         {
             sw++;
+            se++;
             ws++;
+            wn++;
         }
         if (isEmpty(x, y + 1, w, h, map_raw, map))
         {
@@ -68,16 +74,18 @@ public class Obstacle {
         if (isEmpty(x + 1, y + 1, w, h, map_raw, map))
         {
             se++;
+            sw++;
             es++;
+            en++;
         }
-        
-        if (nw == 4 || wn == 4)
+
+        if ((nw == 4 || wn == 4) && notHasCorner(x - 0.5, y - 0.5))
             corners.add(new Point(x - 0.5, y - 0.5));
-        if (ne == 4 || en == 4)
+        if ((ne == 4 || en == 4) && notHasCorner(x - 0.5, y - 0.5))
             corners.add(new Point(x + 1.5, y - 0.5));
-        if (sw == 4 || ws == 4)
+        if ((sw == 4 || ws == 4) && notHasCorner(x - 0.5, y - 0.5))
             corners.add(new Point(x - 0.5, y + 1.5));
-        if (se == 4 || es == 4)
+        if ((se == 4 || es == 4) && notHasCorner(x - 0.5, y - 0.5))
             corners.add(new Point(x + 1.5, y + 1.5));
     }
     
@@ -85,11 +93,21 @@ public class Obstacle {
     {
         if (x < 0 || y < 0 || x >= w || y >= h)
             return false;
-        if (m[y][x] == OBSTACLE && m2[y][x].nullObstacle())
+        if (m[y][x] == OBSTACLE)
         {
-            grow(m, m2, x, y);
+            if (m2[y][x].nullObstacle())
+                grow(m, m2, x, y);
             return false;
         }
+        return true;
+    }
+
+
+    public boolean notHasCorner(int x, int y)
+    {
+        for (Point p : points)
+            if ((int)p.x == x && (int)p.y == y)
+                return false;
         return true;
     }
     
