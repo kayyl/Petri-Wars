@@ -79,13 +79,13 @@ public class Obstacle {
             en++;
         }
 
-        if ((nw == 4 || wn == 4) && notHasCorner(x - 0.5, y - 0.5))
+        if ((nw == 4 || wn == 4) && notHasCorner((int)(x - 0.5), (int)(y - 0.5)))
             corners.add(new Point(x - 0.5, y - 0.5));
-        if ((ne == 4 || en == 4) && notHasCorner(x - 0.5, y - 0.5))
+        if ((ne == 4 || en == 4) && notHasCorner((int)(x + 1.5), (int)(y - 0.5)))
             corners.add(new Point(x + 1.5, y - 0.5));
-        if ((sw == 4 || ws == 4) && notHasCorner(x - 0.5, y - 0.5))
+        if ((sw == 4 || ws == 4) && notHasCorner((int)(x - 0.5), (int)(y + 1.5)))
             corners.add(new Point(x - 0.5, y + 1.5));
-        if ((se == 4 || es == 4) && notHasCorner(x - 0.5, y - 0.5))
+        if ((se == 4 || es == 4) && notHasCorner((int)(x + 1.5), (int)(y + 1.5)))
             corners.add(new Point(x + 1.5, y + 1.5));
     }
     
@@ -105,7 +105,7 @@ public class Obstacle {
 
     public boolean notHasCorner(int x, int y)
     {
-        for (Point p : points)
+        for (Point p : corners)
             if ((int)p.x == x && (int)p.y == y)
                 return false;
         return true;
