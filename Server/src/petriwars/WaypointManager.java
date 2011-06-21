@@ -47,11 +47,12 @@ public class WaypointManager {
 				intersects = get_square_intersects(waypt_list.get(0).loc, dest);
 				if(intersects.isEmpty()){path_found=true; break;}//done searching for waypoints
 				corners = getCorners();
+				corners = pick_corners(corners, cur.loc);
 				print_intersects(intersects);
-				//dont remove so that u can stil ref previous onesss
+				//dont remove so that u can stil ref previous ones
 				cur = path_tree.get(next_path_pick(path_tree));
 				for(int i=0; i<corners.size(); i++){
-					path_tree.add(new WP(corners.get(i).loc, dest, cur));
+					path_tree.add(new WP(corners.get(i), dest, cur));
 				}
 			}
 			//reassemble the path
@@ -226,9 +227,12 @@ public class WaypointManager {
 		
 		public ArrayList<Point> pick_corners (ArrayList<Point> corners, Point start){
 			ArrayList<Point> ints;
+			ArrayList<Point> picks = new ArrayList<Point>();
 			for(int i=0; i<corners.size(); i++){
-				
+				ints=get_square_intersects(start, corners.get(i));
+				if(ints.isEmpty()) picks.add(corners.get(i));
 			}
+			return picks;
 		}
 	}
 	
