@@ -26,6 +26,7 @@ import org.mikelew.petriwars.hud.ConsoleListener;
 import org.mikelew.petriwars.screens.GameScreen;
 import org.mikelew.petriwars.screens.PlayScreen;
 import org.mikelew.petriwars.screens.TitleScreen;
+import org.openmali.vecmath2.Tuple3f;
 import org.xith3d.base.Xith3DEnvironment;
 import org.xith3d.loop.InputAdapterRenderLoop;
 import org.xith3d.loop.RenderLoop;
@@ -247,7 +248,7 @@ public class PetriClient extends InputAdapterRenderLoop {
 	// To Use:
 	// import static org.mikelew.petriwars.PetriClient.<CONSTANT>;
 	
-	public static final float PW_SCALE = 1.0f;
+	public static final float PW_SCALE = 15.0f;
 	
 	/////////////////////// Cheat Console ///////////////////////////
 	
@@ -278,12 +279,31 @@ public class PetriClient extends InputAdapterRenderLoop {
 				String cmd = tk.nextToken();
 				
 				//TODO insert cheat command logic here!
-				if (cmd.matches("(?i)wireframe(mode)?")){
+				if (cmd.matches("(?i)help|\\?")){
+					Log.println(logchannel, "Commands I will tell you about: wireframemode, camera look/eye.");
+				} else if (cmd.matches("(?i)wireframe(mode)?")){
 					boolean b = !canvas.isWireframeMode();
 					if (tk.hasMoreTokens())
 						b = parseBoolean(tk.nextToken());
 					canvas.setWireframeMode(b);
 					
+				} else if (cmd.matches("(?i)camera")){
+					String mode = tk.nextToken();
+					if (tk.countTokens() != 3) throw new Exception();
+					float x = 0, y = 0, z = 0;
+					
+					x = Float.parseFloat(tk.nextToken());
+					y = Float.parseFloat(tk.nextToken());
+					z = Float.parseFloat(tk.nextToken());
+					
+					if (mode.matches("(?i)look")){
+						currScreen.getCamera().setLookAtPosition(new Tuple3f(x, y, z));
+					} else if (mode.matches("(?i)eye")){
+						currScreen.getCamera().setEyePosition(new Tuple3f(x, y, z));
+					} else if (mode.matches("(?i)up")){
+						currScreen.getCamera().setUpVector(new Tuple3f(x, y, z));
+					}
+					currScreen.getCamera().update();
 				} else if (cmd.matches("(?i)boolprop")){
 					String name = tk.nextToken();
 					boolean b = parseBoolean(tk.nextToken());
@@ -317,6 +337,7 @@ public class PetriClient extends InputAdapterRenderLoop {
 				}
 			} catch (Exception ex){
 				Log.println(logchannel, "Bad command");
+				ex.printStackTrace();
 			}
 		}
 		
