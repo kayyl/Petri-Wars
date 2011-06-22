@@ -20,11 +20,9 @@ import org.jagatoo.input.events.MouseButtonReleasedEvent;
 import org.jagatoo.input.events.MouseMovedEvent;
 import org.jagatoo.input.events.MouseStoppedEvent;
 import org.jagatoo.input.events.MouseWheelEvent;
-import org.jagatoo.input.listeners.InputAdapter;
 import org.jagatoo.input.listeners.InputListener;
-import org.jagatoo.input.listeners.KeyboardListener;
-import org.jagatoo.input.listeners.MouseListener;
 import org.mikelew.petriwars.PetriClient;
+import org.mikelew.petriwars.util.Camera;
 import org.xith3d.render.BackgroundRenderPass;
 import org.xith3d.render.RenderPass;
 import org.xith3d.scenegraph.BranchGroup;
@@ -35,6 +33,7 @@ public abstract class GameScreen implements InputListener {
 	protected final BranchGroup scene;
 	protected final HUD hud;
 	private BackgroundRenderPass background;
+	protected final Camera camera;
 	
 	private final boolean prespectiveview;
 	
@@ -50,6 +49,7 @@ public abstract class GameScreen implements InputListener {
 		scene = foreground.getBranchGroup();
 		
 		hud = new HUD(0, 0);
+		camera = new Camera();
 	}
 	public GameScreen() {this(true);}
 	
@@ -64,6 +64,7 @@ public abstract class GameScreen implements InputListener {
 	}
 	
 	public HUD getHud() {return hud;}
+	public Camera getCamera() {return camera;}
 	
 	public final void init(){
 		hud.setSize(
