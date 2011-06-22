@@ -40,7 +40,7 @@ public class Map {
         }
     }
     
-    public void testMap() {
+    public String[][] getTestRepresentation(boolean showCorners) {
         String[][] output = new String[height][width];
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
@@ -50,17 +50,23 @@ public class Map {
                     output[y][x] = ".";
             }
         }
-        for (int i = 0; i < obstacles.size(); i++) {
-            for (Point p : obstacles.get(i).getCorners()) {
-                output[(int)p.y][(int)p.x] = "x";
-            }
-        }
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) 
+        if (showCorners)
+            for (int i = 0; i < obstacles.size(); i++)
+                for (Point p : obstacles.get(i).getCorners())
+                    output[(int)p.y][(int)p.x] = "x";
+        return output;
+    }
+    
+    public void testMap() {
+        printRepresentation(getTestRepresentation(true));
+    }
+    
+    public void printRepresentation(String[][] output) {
+        for (int y = 0; y < output.length; y++) {
+            for (int x = 0; x < output[0].length; x++)
                 System.out.print(output[y][x]);
             System.out.println();
         }
-        
     }
     
     public ArrayList<Unit> getUnitsAt(int x, int y) {
