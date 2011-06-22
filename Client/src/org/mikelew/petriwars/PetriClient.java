@@ -250,6 +250,9 @@ public class PetriClient extends InputAdapterRenderLoop {
 	
 	public static final float PW_SCALE = 15.0f;
 	
+	public static final int PW_CAMERA_EDGEBUFFER = 80;
+	public static final float PW_CAMERA_MOVESPD = 5.0f;
+	
 	/////////////////////// Cheat Console ///////////////////////////
 	
 	private void setupCheatConsole(){
