@@ -1,7 +1,10 @@
 package petriwars;
 
 import java.util.ArrayList;
+
+import petriwars.types.Map;
 import petriwars.types.Point;
+import petriwars.ServerManager;
 
 public class WaypointManager {
 	public ArrayList<Path> path_list;
@@ -11,11 +14,13 @@ public class WaypointManager {
 
 	public static class Path{
 		ArrayList<WP> waypt_list;
-		public Path(float start_x, float start_y, float end_x, float end_y){
+		Map map;
+		public Path(double d, double e, double f, double g, Map m){
 			
+			map = m;
 			waypt_list = new ArrayList<WP>();
-			waypt_list.add(new WP(new Point(start_x, start_y), new Point(end_x, end_y), null));
-			waypt_list.add(new WP(new Point(end_x, end_y), new Point(end_x, end_y), waypt_list.get(0)));
+			waypt_list.add(new WP(new Point(d, e), new Point(f, g), null));
+			waypt_list.add(new WP(new Point(f, g), new Point(f, g), waypt_list.get(0)));
 			expand_path();
 		}
 		
@@ -27,7 +32,8 @@ public class WaypointManager {
 				this.loc = loc;
 				this.prev = prev;
 				dist_left = (Math.abs(dest.x-loc.x)) + (Math.abs(dest.y-loc.y));
-				dist_travelled = prev.dist_travelled + Math.abs(prev.loc.x-loc.x) + Math.abs(prev.loc.y-loc.y);
+				if(prev==null) dist_travelled =0;
+				else dist_travelled = prev.dist_travelled + Math.abs(prev.loc.x-loc.x) + Math.abs(prev.loc.y-loc.y);
 			}
 		}
 		
@@ -35,19 +41,26 @@ public class WaypointManager {
 			//necessary bool :(
 			boolean path_found=false;
 			Point dest = waypt_list.get(waypt_list.size()-1).loc;
-			WP cur;
+			WP cur = waypt_list.get(0);
 			ArrayList<WP> path_tree = new ArrayList<WP>();
 			path_tree.add((WP) waypt_list.get(0));
 			
 			//figure out which squares the unit path hits
 			ArrayList<Point> intersects;
-			ArrayList<Point> corners; // = andrew's corner finder
+			ArrayList<Point> corners = new ArrayList<Point>();
 			//corners.sort(); //and also shave
 			while(path_found==false){
 				intersects = get_square_intersects(waypt_list.get(0).loc, dest);
+				if(intersects.isEmpty()==false)System.out.println("Intersect: " + intersects.get(0).x + ", " + intersects.get(0).y);
 				if(intersects.isEmpty()){path_found=true; break;}//done searching for waypoints
-				corners = getCorners();
-				corners = pick_corners(corners, cur.loc);
+				for(int i=0; i<intersects.size(); i++){
+					if(map.getObstacleAt((int)intersects.get(i).x, (int)intersects.get(i).y)!=null){
+						corners = map.getObstacleAt((int)intersects.get(i).x, (int)intersects.get(i).y).getCorners();
+						corners = pick_corners(corners, cur.loc);
+						break;
+					}
+				}
+				if(corners.isEmpty()) continue;
 				print_intersects(intersects);
 				//dont remove so that u can stil ref previous ones
 				cur = path_tree.get(next_path_pick(path_tree));
@@ -56,7 +69,7 @@ public class WaypointManager {
 				}
 			}
 			//reassemble the path
-			while(cur.loc.x != waypt_list.get(0).loc.x && cur.loc.y != waypt_list.get(0).loc.y){
+			while(cur!=null){
 				waypt_list.add(1, cur);
 				cur = cur.prev;
 			}
@@ -81,14 +94,23 @@ public class WaypointManager {
 			if(left_right>0){//check if you are moving right
 				if(slope==1){
 					xpos-=1; ypos-=1;
-					while((int)xpos!=(int)end_square.x || (int)ypos!=(int)end_square.y){
+					while((int)xpos<(int)end_square.x && (int)ypos<(int)end_square.y){
 						xpos+=1;ypos+=1;
 						intersects.add(new Point((int)(xpos), (int) ypos));//add to intersects
 					}
 				}
+				if(slope==-1){
+					xpos-=1; ypos+=1;
+					while((int)xpos<(int)end_square.x && (int)ypos>(int)end_square.y){
+						xpos+=1;ypos-=1;
+						intersects.add(new Point((int)(xpos), (int) ypos));//add to intersects
+					}
+				}
+				
+				
 				if(slope>1){
 					xpos-=1; ypos-=slope;
-					while((int)xpos!=(int)end_square.x || (int)ypos!=(int)end_square.y){//until you reach the destination square
+					while((int)xpos<(int)end_square.x && (int)ypos<(int)end_square.y){//until you reach the destination square
 						//increment xpos and ypos
 						xpos+=1; ypos+=slope;
 						for(int i=(int)ypos; i<=(int)(ypos+slope); i++){//get all int values of y incurred in this int x
@@ -100,7 +122,7 @@ public class WaypointManager {
 				else if (slope<1 && slope>0){
 					slope=(float) Math.pow(slope, -1);//get slope inverse
 					ypos-=1; xpos-=slope;
-					while((int)xpos!=(int)end_square.x || (int)ypos!=(int)end_square.y){//until you reach the destination square
+					while((int)xpos<(int)end_square.x && (int)ypos<(int)end_square.y){//until you reach the destination square
 						//increment xpos and ypos
 						ypos+=1; xpos+=slope;
 						for(int i=(int)xpos; i<=(int)(xpos+slope); i++){//get all int values of y incurred in this int x
@@ -119,7 +141,7 @@ public class WaypointManager {
 				else if (slope<0 && slope>-1){
 					slope=(float) Math.pow(slope, -1);//get slope inverse
 					ypos+=1; xpos+=slope;
-					while((int)xpos!=(int)end_square.x || (int)ypos!=(int)end_square.y){//until you reach the destination square
+					while((int)xpos<(int)end_square.x && (int)ypos>(int)end_square.y){//until you reach the destination square
 						//increment xpos and ypos
 						ypos-=1; xpos-=slope;
 						for(int i=(int)xpos; i<=(int)(xpos-slope); i++){//get all int values of y incurred in this int x
@@ -131,7 +153,7 @@ public class WaypointManager {
 				}
 				else if (slope<-1){
 					xpos-=1; ypos-=slope;
-					while((int)xpos!=(int)end_square.x || (int)ypos!=(int)end_square.y){//until you reach the destination square
+					while((int)xpos<(int)end_square.x && (int)ypos>(int)end_square.y){//until you reach the destination square
 						//increment xpos and ypos
 						xpos+=1; ypos+=slope;
 						for(int i=(int)ypos; i>=(int)(ypos+slope); i--){//get all int values of y incurred in this int x
@@ -144,7 +166,7 @@ public class WaypointManager {
 			}
 			else if (left_right<0){//you may be moving left
 				if(slope>=1){
-					while((int)xpos!=(int)end_square.x || (int)ypos!=(int)end_square.y){//until you reach the destination square
+					while((int)xpos>(int)end_square.x && (int)ypos<(int)end_square.y){//until you reach the destination square
 						for(int i=(int)ypos; i<=(int)(ypos+slope); i++){//get all int values of y incurred in this int x
 							intersects.add(new Point((int)(xpos), i));//add to intersects
 						}
@@ -154,7 +176,7 @@ public class WaypointManager {
 				}
 				else if (slope<1 && slope>0){
 					slope=(float) Math.pow(slope, -1);//get slope inverse
-					while((int)xpos!=(int)end_square.x || (int)ypos!=(int)end_square.y){//until you reach the destination square
+					while((int)xpos>(int)end_square.x && (int)ypos<(int)end_square.y){//until you reach the destination square
 						for(int i=(int)xpos; i>=(int)(xpos+slope); i--){//get all int values of y incurred in this int x
 							intersects.add(new Point(i, (int)ypos));//add to intersects
 						}
@@ -170,7 +192,7 @@ public class WaypointManager {
 				}
 				else if (slope<0 && slope>-1){
 					slope=(float) Math.pow(slope, -1);//get slope inverse
-					while((int)xpos!=(int)end_square.x || (int)ypos!=(int)end_square.y){//until you reach the destination square
+					while((int)xpos>(int)end_square.x && (int)ypos>(int)end_square.y){//until you reach the destination square
 						for(int i=(int)xpos; i>=(int)(xpos+slope); i--){//get all int values of y incurred in this int x
 							intersects.add(new Point(i, (int)ypos));//add to intersects
 						}
@@ -179,7 +201,7 @@ public class WaypointManager {
 					}
 				}
 				else if (slope<-1){
-					while((int)xpos!=(int)end_square.x || (int)ypos!=(int)end_square.y){//until you reach the destination square
+					while((int)xpos>(int)end_square.x && (int)ypos>(int)end_square.y){//until you reach the destination square
 						for(int i=(int)ypos; i>=(int)(ypos+slope); i--){//get all int values of y incurred in this int x
 							intersects.add(new Point((int)(xpos), i));//add to intersects
 						}
