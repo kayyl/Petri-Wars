@@ -1,40 +1,60 @@
 package petriwars.types;
 
-public class Attack implements Task {
-	private Unit attacker, defender;
-	private Mode mode;
-	
-	enum Mode {
-		SOFT,
-		HARD
-	}
-	
-	// Constructor for Mode.SOFT
-	public Attack (Unit a) {
-		attacker = a;
-		mode = Mode.SOFT;
-	}
-	
-	// Constructor for Mode.HARD
-	public Attack (Unit a, Unit d) {
-		attacker = a;
-		defender = d;
-		mode = Mode.HARD;
-	}
-	
-	public void exec () {
-		if (mode = Mode.HARD) {			
-			// Check if defender is in range of attacker
-			if (defender.inRange(a.currentPosition)) {
-				// Attack
-				d.health -= a.att;
-				if (d.health < 0) {
-					d.alive = false;
-				}
-			} else {
-				// Move
-				
-			}
-		}
-	}
+public class SoftAttack implements Task {
+ private Unit attacker, defender;
+ private Mode mode;
+
+ // Constructor for Mode.HARD
+ public Attack (Unit a, Unit d) {
+  attacker = a;
+  defender = d;
+  mode = Mode.HARD;
+ }
+ 
+ public void exec () {
+
+   // Check if defender is in range of attacker
+   if (defender.inRange(attacker.currentPosition)) {
+    // Attack
+    defender.health -= attacker.att;
+    if (defender.health < 0) {
+     defender.alive = false;
+    }
+   }
+   else{
+       attacker.cancelAttack();
+   }
+   
+   
+  
+ }
+}
+
+public class HardAttack implements Task {
+ private Unit attacker, defender;
+ private Mode mode;
+ 
+ 
+ // Constructor for Mode.HARD
+ public Attack (Unit a, Unit d) {
+  attacker = a;
+  defender = d;
+  mode = Mode.HARD;
+ }
+ 
+ public void exec () {
+
+   // Check if defender is in range of attacker
+   if (defender.inRange(attacker.currentPosition)) {
+    // Attack
+    defender.health -= attacker.att;
+    if (defender.health < 0) {
+     defender.alive = false;
+    }
+   } else {
+    // Move
+    attacker.move(defender.currentPosition);
+   }
+  
+ }
 }
