@@ -3,66 +3,43 @@ package org.mikelew.petriwars;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.sql.Date;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.StringTokenizer;
 import java.util.logging.Formatter;
 import java.util.logging.Handler;
-import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-
 import org.jagatoo.input.InputSystem;
 import org.jagatoo.input.InputSystemException;
-import org.jagatoo.input.devices.components.ControllerAxis;
-import org.jagatoo.input.devices.components.ControllerButton;
 import org.jagatoo.input.devices.components.Key;
 import org.jagatoo.input.devices.components.KeyID;
 import org.jagatoo.input.devices.components.Keys;
-import org.jagatoo.input.devices.components.MouseButton;
-import org.jagatoo.input.events.ControllerAxisChangedEvent;
-import org.jagatoo.input.events.ControllerButtonEvent;
-import org.jagatoo.input.events.ControllerButtonPressedEvent;
-import org.jagatoo.input.events.ControllerButtonReleasedEvent;
 import org.jagatoo.input.events.KeyPressedEvent;
-import org.jagatoo.input.events.KeyReleasedEvent;
-import org.jagatoo.input.events.KeyStateEvent;
-import org.jagatoo.input.events.KeyTypedEvent;
-import org.jagatoo.input.events.KeyboardEvent;
-import org.jagatoo.input.events.MouseButtonClickedEvent;
-import org.jagatoo.input.events.MouseButtonEvent;
-import org.jagatoo.input.events.MouseButtonPressedEvent;
-import org.jagatoo.input.events.MouseButtonReleasedEvent;
-import org.jagatoo.input.events.MouseMovedEvent;
-import org.jagatoo.input.events.MouseStoppedEvent;
-import org.jagatoo.input.events.MouseWheelEvent;
 import org.jagatoo.input.listeners.InputAdapter;
-import org.jagatoo.input.listeners.InputListener;
 import org.jagatoo.logging.Log;
 import org.jagatoo.logging.LogChannel;
-import org.jagatoo.logging.LogLevel;
 import org.jagatoo.logging.LogManager;
 import org.mikelew.petriwars.annotations.TestingCheat;
 import org.mikelew.petriwars.hud.CheatConsole;
 import org.mikelew.petriwars.hud.ConsoleListener;
 import org.mikelew.petriwars.screens.GameScreen;
+import org.mikelew.petriwars.screens.PlayScreen;
 import org.mikelew.petriwars.screens.TitleScreen;
+import org.openmali.vecmath2.Tuple3f;
 import org.xith3d.base.Xith3DEnvironment;
-import org.xith3d.loaders.texture.TextureLoader;
 import org.xith3d.loop.InputAdapterRenderLoop;
 import org.xith3d.loop.RenderLoop;
 import org.xith3d.loop.RenderLoopListener;
 import org.xith3d.render.Canvas3D;
 import org.xith3d.render.Canvas3DFactory;
-import org.xith3d.render.config.CanvasConstructionInfo;
 import org.xith3d.render.config.DisplayMode;
 import org.xith3d.render.config.DisplayModeSelector;
 import org.xith3d.render.config.OpenGLLayer;
 import org.xith3d.render.config.DisplayMode.FullscreenMode;
 import org.xith3d.render.util.WindowClosingListener;
 import org.xith3d.resources.ResourceLocator;
+import org.xith3d.scenegraph.View;
 import org.xith3d.ui.hud.HUD;
 
 import com.sun.servicetag.UnauthorizedAccessException;
@@ -123,6 +100,10 @@ public class PetriClient extends InputAdapterRenderLoop {
 	protected HUD hud;
 	protected CheatConsole cheatconsole;
 	
+	public View getView(){
+		return env.getView();
+	}
+	
 	//////////////////////////// Client Start-up ///////////////////////////////
 
 	private PetriClient() {
@@ -133,7 +114,8 @@ public class PetriClient extends InputAdapterRenderLoop {
 		setupCheatConsole();
 		
 		//Insert first screen to be run here!
-		this.setScreen(new TitleScreen());
+		//this.setScreen(new TitleScreen());
+		this.setScreen(new PlayScreen());
 	}
 	
 	private void setupLogging(){
@@ -174,7 +156,7 @@ public class PetriClient extends InputAdapterRenderLoop {
 						"Petri Wars!");
 			InputSystem.getInstance().registerNewKeyboardAndMouse(canvas.getPeer());
 			env.addCanvas(canvas);
-			canvas.setBackgroundColor(0, 0, 0);
+			//canvas.setBackgroundColor(0, 0, 0);
 			
 			canvas.addWindowClosingListener(new WindowClosingListener() {
 				@Override public void onWindowCloseRequested(Canvas3D canvas) {
@@ -224,6 +206,7 @@ public class PetriClient extends InputAdapterRenderLoop {
 		if (pendingScreen != null){
 			if (currScreen != null){
 				currScreen.deinit();
+				currScreen.getCamera().setAttachedView(null);
 				env.removeRenderPass(currScreen.getRenderPass());
 				env.removeRenderPass(currScreen.getBackgroundRenderPass());
 				env.removeHUD(currScreen.getHud());
@@ -235,6 +218,7 @@ public class PetriClient extends InputAdapterRenderLoop {
 			env.addRenderPass(currScreen.getRenderPass());
 			env.addRenderPass(currScreen.getBackgroundRenderPass());
 			env.addHUD(currScreen.getHud());
+			currScreen.getCamera().setAttachedView(env.getView());
 			currScreen.init();
 		}
 		
@@ -259,6 +243,15 @@ public class PetriClient extends InputAdapterRenderLoop {
 	 * switched and certain commands allowed to be called. */
 	public boolean testingcheats = false;
 	@TestingCheat public int screensize = 2;
+	
+	///////////////////// Global Constants //////////////////////////
+	// To Use:
+	// import static org.mikelew.petriwars.PetriClient.<CONSTANT>;
+	
+	public static final float PW_SCALE = 15.0f;
+	
+	public static final int PW_CAMERA_EDGEBUFFER = 80;
+	public static final float PW_CAMERA_MOVESPD = 5.0f;
 	
 	/////////////////////// Cheat Console ///////////////////////////
 	
@@ -289,12 +282,31 @@ public class PetriClient extends InputAdapterRenderLoop {
 				String cmd = tk.nextToken();
 				
 				//TODO insert cheat command logic here!
-				if (cmd.matches("(?i)wireframe(mode)?")){
+				if (cmd.matches("(?i)help|\\?")){
+					Log.println(logchannel, "Commands I will tell you about: wireframemode, camera look/eye.");
+				} else if (cmd.matches("(?i)wireframe(mode)?")){
 					boolean b = !canvas.isWireframeMode();
 					if (tk.hasMoreTokens())
 						b = parseBoolean(tk.nextToken());
 					canvas.setWireframeMode(b);
 					
+				} else if (cmd.matches("(?i)camera")){
+					String mode = tk.nextToken();
+					if (tk.countTokens() != 3) throw new Exception();
+					float x = 0, y = 0, z = 0;
+					
+					x = Float.parseFloat(tk.nextToken());
+					y = Float.parseFloat(tk.nextToken());
+					z = Float.parseFloat(tk.nextToken());
+					
+					if (mode.matches("(?i)look")){
+						currScreen.getCamera().setLookAtPosition(new Tuple3f(x, y, z));
+					} else if (mode.matches("(?i)eye")){
+						currScreen.getCamera().setEyePosition(new Tuple3f(x, y, z));
+					} else if (mode.matches("(?i)up")){
+						currScreen.getCamera().setUpVector(new Tuple3f(x, y, z));
+					}
+					currScreen.getCamera().update();
 				} else if (cmd.matches("(?i)boolprop")){
 					String name = tk.nextToken();
 					boolean b = parseBoolean(tk.nextToken());
@@ -328,6 +340,7 @@ public class PetriClient extends InputAdapterRenderLoop {
 				}
 			} catch (Exception ex){
 				Log.println(logchannel, "Bad command");
+				ex.printStackTrace();
 			}
 		}
 		

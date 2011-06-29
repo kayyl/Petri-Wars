@@ -5,9 +5,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.jagatoo.input.InputSystem;
 import org.jagatoo.input.devices.components.Key;
-import org.jagatoo.input.devices.components.KeyID;
+import org.jagatoo.input.events.KeyPressedEvent;
 import org.jagatoo.input.events.KeyReleasedEvent;
 import org.jagatoo.input.events.KeyTypedEvent;
 import org.jagatoo.util.errorhandling.IncorrectFormatException;
@@ -196,8 +195,11 @@ public class TitleScreen extends GameScreen {
 		this.alphaTimer = this.alphaTimerTotal = time;
 	}
 	
-	
+	private char prevKeyChar = 0; //hacky fix to the repeating key problem
 	@Override public void onKeyTyped(KeyTypedEvent e, char keyChar) {
+		if (prevKeyChar == keyChar) return; //hacky fix to the repeating key problem
+		prevKeyChar = keyChar;
+		
 		if (inputDirection == ScreenInputDirection.ConnectScreen){
 			switch (keyChar){
 			case '\n':
@@ -214,8 +216,10 @@ public class TitleScreen extends GameScreen {
 		}
 	}
 	
-	@Override public void onKeyReleased(KeyReleasedEvent e, Key key) {
-		
+	@Override public void onKeyPressed(KeyPressedEvent e, Key key) {
+		prevKeyChar = 0; //hacky fix to the repeating key problem
 	}
+	
+	@Override public void onKeyReleased(KeyReleasedEvent e, Key key) {}
 
 }
